@@ -1,6 +1,7 @@
 package ru.hogwarts.school.service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -32,15 +33,11 @@ public class FacultyService {
         facultyRepository.deleteById(id);
     }
 
-    public Collection<Faculty> findByColor(String color) {
-        return facultyRepository.findByColorContainingIgnoreCase(color);
-    }
-
-    public Collection<Faculty> findByName(String name) {
-        return facultyRepository.findByNameContainingIgnoreCase(name);
+    public Collection<Faculty> findByColorOrName(String part) {
+        return facultyRepository.findByNameContainingIgnoreCaseOrColorContainingIgnoreCase(part, part);
     }
 
     public Collection<Faculty> findAll() {
-        return facultyRepository.findAll();
+        return Collections.unmodifiableCollection(facultyRepository.findAll());
     }
 }
