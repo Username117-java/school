@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
@@ -57,5 +58,14 @@ public class StudentController {
     @GetMapping("/age/{age}")
     public Collection<Student> getStudentsByAge(@PathVariable int age) {
         return studentService.findByAge(age);
+    }
+
+    @GetMapping("/age")
+    public Collection<Student> getStudentsByAgeBetween(@RequestBody int minAge, @RequestBody int maxAge) {
+    return studentService.findByAgeBetween(minAge, maxAge);}
+
+    @GetMapping("/{id}/faculty")
+    public Faculty getStudentFaculty(@PathVariable long id) {
+        return studentService.findStudent(id).getFaculty();
     }
 }
