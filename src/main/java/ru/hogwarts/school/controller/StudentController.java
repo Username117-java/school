@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.service.AvatarService;
 import ru.hogwarts.school.service.StudentService;
 
 import java.io.IOException;
@@ -24,24 +25,26 @@ import java.util.Collection;
 public class StudentController {
 
     private final StudentService studentService;
+    private final AvatarService avatarService;
 
-    public StudentController(StudentService studentService) {
+    public StudentController(StudentService studentService, AvatarService avatarService) {
         this.studentService = studentService;
+        this.avatarService = avatarService;
     }
 
     @GetMapping("/count")
-    public ResponseEntity<Integer> getStudentsCount() {
-        return ResponseEntity.ok(studentService.getStudentsCount());
+    public Integer getStudentsCount() {
+        return studentService.getStudentsCount();
     }
 
     @GetMapping("/average-age")
-    public ResponseEntity<Double> getAverageAge() {
-        return ResponseEntity.ok(studentService.getAverageAge());
+    public Double getAverageAge() {
+        return studentService.getAverageAge();
     }
 
     @GetMapping("/last-five")
-    public ResponseEntity<Collection<Student>> getLastFiveStudents() {
-        return ResponseEntity.ok(studentService.getLastFiveStudents());
+    public Collection<Student> getLastFiveStudents() {
+        return studentService.getLastFiveStudents();
     }
 
 
@@ -69,9 +72,8 @@ public class StudentController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+    public void deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/age/{age}")
@@ -81,7 +83,8 @@ public class StudentController {
 
     @GetMapping("/age")
     public Collection<Student> getStudentsByAgeBetween(@RequestBody int minAge, @RequestBody int maxAge) {
-    return studentService.findByAgeBetween(minAge, maxAge);}
+        return studentService.findByAgeBetween(minAge, maxAge);
+    }
 
     @GetMapping("/{id}/faculty")
     public Faculty getStudentFaculty(@PathVariable long id) {
@@ -94,13 +97,13 @@ public class StudentController {
             return ResponseEntity.badRequest().body("Файл слишком большой");
         }
 
-        studentService.uploadAvatar(id, avatar);
+        avatarService.uploadAvatar(id, avatar);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping(value = "/{id}/avatar/preview")
     public ResponseEntity<byte[]> downloadAvatar(@PathVariable Long id) {
-        Avatar avatar = studentService.findAvatar(id);
+        Avatar avatar = avatarService.findAvatar(id);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(avatar.getMediaType()));
@@ -111,7 +114,7 @@ public class StudentController {
 
     @GetMapping(value = "/{id}/avatar")
     public void downloadAvatar(@PathVariable Long id, HttpServletResponse response) throws IOException {
-        Avatar avatar = studentService.findAvatar(id);
+        Avatar avatar = avatarService.findAvatar(id);
 
         Path path = Path.of(avatar.getFilePath());
 
