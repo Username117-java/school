@@ -1,5 +1,7 @@
 package ru.hogwarts.school.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
 public class AvatarService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AvatarService.class);
+
     @Value("${avatars.dir.path}")
     private String avatarsDir;
 
@@ -33,13 +38,21 @@ public class AvatarService {
 
     @Transactional(readOnly = true)
     public Avatar findAvatar(long studentId) {
-        return avatarRepository.findByStudentId(studentId).orElseThrow();
+        logger.debug("Was invoked method for finding avatar for student with id {}", studentId);
+        return avatarRepository.findByStudentId(studentId).orElseThrow(() -> {
+            logger.error("Not found avatar for student with id = {}", studentId);
+            return new RuntimeException("Not found student with id = " + studentId);
+        });
     }
 
 
 
     public void uploadAvatar(Long studentId, MultipartFile file) throws IOException {
-        Student student = studentRepository.findById(studentId).orElseThrow();
+        logger.info("Was invoked method for uploading avatar for student with id {}", studentId);
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> {
+            logger.error("Not found student with id = {} for upload avatar", studentId);
+            return new RuntimeException("Not found student with id = " + studentId);
+        });
 
         Path filePath = Path.of(avatarsDir, studentId + "." + getExtension(Objects.requireNonNull(file.getOriginalFilename())));
         Files.createDirectories(filePath.getParent());
@@ -68,6 +81,7 @@ public class AvatarService {
     }
 
     public List<Avatar> getAllAvatars(Pageable pageable) {
+        logger.debug("Was invoked method for retrieving all avatars with pagination");
         return avatarRepository.findAll(pageable).getContent();
     }
 }
