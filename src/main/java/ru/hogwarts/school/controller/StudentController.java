@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/student")
@@ -125,5 +126,21 @@ public class StudentController {
             response.setContentLength((int) avatar.getFileSize());
             is.transferTo(os);
         }
+    }
+
+    @GetMapping("/name-starts-with-A")
+    public List<Student> getStudentsNamesStartingWithA() {
+        return studentService.getStudentsNamesStartingWithA();
+    }
+
+    @GetMapping("/average-age-2")
+    public Double getAverageAge2() {
+        return studentService.getAverageAge2();
+    }
+
+    @GetMapping("/sum")
+    public Long getArithmeticProgressionSum() {
+        long n = 1000000L;
+        return (1 + n) * n / 2;
     }
 }
