@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.LongStream;
 
 @RestController
 @RequestMapping("/student")
@@ -140,7 +141,8 @@ public class StudentController {
 
     @GetMapping("/sum")
     public Long getArithmeticProgressionSum() {
-        long n = 1000000L;
-        return (1 + n) * n / 2;
+        return LongStream.rangeClosed(1, 1000000)
+                .parallel()
+                .sum();
     }
 }
