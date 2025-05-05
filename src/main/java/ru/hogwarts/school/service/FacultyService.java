@@ -2,6 +2,7 @@ package ru.hogwarts.school.service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,5 +48,13 @@ public class FacultyService {
     public Collection<Faculty> findAll() {
         logger.debug("Was invoked method for find all faculties");
         return Collections.unmodifiableCollection(facultyRepository.findAll());
+    }
+
+    public String getLongestFacultyName() {
+        return facultyRepository.findAll().stream()
+                .map(Faculty::getName)
+                .max(Comparator.comparingInt(String::length))
+                .orElse("No faculties");
+
     }
 }
