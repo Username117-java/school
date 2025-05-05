@@ -28,6 +28,11 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
+    public Collection<Student> getAllStudents() {
+        logger.info("Was invoked method for get all students");
+        return studentRepository.findAll();
+    }
+
     public Student findStudent(long id) {
         logger.debug("Was invoked method for find student by id = {}", id);
         return studentRepository.findById(id).orElseThrow(() -> {
@@ -87,6 +92,11 @@ public class StudentService {
                 .average()
                 .orElse(0.0);
 
+    }
+
+    public synchronized void synchronizedPrintStudent(Student student) {
+        logger.debug("Was invoked method for synchronize print");
+        System.out.println(student.toString());
     }
 
 
