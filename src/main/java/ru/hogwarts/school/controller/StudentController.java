@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -144,5 +145,43 @@ public class StudentController {
         return LongStream.rangeClosed(1, 1000000)
                 .parallel()
                 .sum();
+    }
+
+    @GetMapping("/print-parallel")
+    public void printParallel() {
+        ArrayList<Student> students = new ArrayList<>(studentService.getAllStudents());
+
+        System.out.println(students.get(0).getName());
+        System.out.println(students.get(1).getName());
+
+        new Thread(() -> {
+            System.out.println(students.get(2).getName());
+            System.out.println(students.get(3).getName());
+        }).start();
+
+        new Thread(() -> {
+            System.out.println(students.get(4).getName());
+            System.out.println(students.get(5).getName());
+        }).start();
+    }
+
+    @GetMapping("/print-synchronized")
+    public void printSynchronized() {
+        ArrayList<Student> students = new ArrayList<>(studentService.getAllStudents());
+
+        studentService.synchronizedPrintStudent(students.get(0));
+        studentService.synchronizedPrintStudent(students.get(1));
+
+        new Thread(() -> {
+            studentService.synchronizedPrintStudent(students.get(2));
+            studentService.synchronizedPrintStudent(students.get(3));
+        }).start();
+
+        new Thread(() -> {
+            studentService.synchronizedPrintStudent(students.get(4));
+            studentService.synchronizedPrintStudent(students.get(5));
+        }).start();
+
+
     }
 }
