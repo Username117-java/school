@@ -3,10 +3,16 @@ package ru.hogwarts.school.service;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import ru.hogwarts.school.DTO.FacultyDTO;
+import ru.hogwarts.school.DTO.StudentDTO;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.repository.FacultyRepository;
 
@@ -27,7 +33,8 @@ public class FacultyService {
 
     public Faculty findFaculty(long id) {
         logger.debug("Was invoked method for find faculty with id {}", id);
-        return facultyRepository.findById(id).get();
+        return facultyRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Faculty not found"));
     }
 
     public Faculty editFaculty(Faculty faculty) {
@@ -56,5 +63,26 @@ public class FacultyService {
                 .max(Comparator.comparingInt(String::length))
                 .orElse("No faculties");
 
+    }
+
+    public FacultyDTO convertToDto(Faculty faculty) {
+        FacultyDTO facultyDTO = new FacultyDTO(
+                faculty.getId(),
+                faculty.getName(),
+                faculty.getColor()
+        );
+
+        if (faculty.getStudents() != null) {
+            List<StudentDTO> studentDTOs = faculty.getStudents().stream()
+                    .map(student -> new StudentDTO(
+                            student.getId(),
+                            student.getName(),
+                            student.getAge()
+                    ))
+                    .collect(Collectors.toList());
+            facultyDTO.setStudents(studentDTOs);
+        }
+
+        return facultyDTO;
     }
 }

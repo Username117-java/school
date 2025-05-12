@@ -3,11 +3,14 @@ package ru.hogwarts.school.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.hogwarts.school.DTO.FacultyDTO;
+import ru.hogwarts.school.DTO.StudentDTO;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.FacultyService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/faculty")
@@ -44,6 +47,10 @@ public class FacultyController {
 
     @DeleteMapping("{id}")
     public ResponseEntity<Void> deleteFaculty(@PathVariable Long id) {
+        Faculty faculty = facultyService.findFaculty(id);
+        if (faculty == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
         facultyService.deleteFaculty(id);
         return ResponseEntity.ok().build();
     }
@@ -54,8 +61,14 @@ public class FacultyController {
     }
 
     @GetMapping("/{id}/students")
-    public Collection<Student> getFacultyStudents(@PathVariable long id) {
-        return facultyService.findFaculty(id).getStudents();
+    public ResponseEntity<Collection<StudentDTO>> getFacultyStudents(@PathVariable Long id) {
+        Faculty faculty = facultyService.findFaculty(id);
+        if (faculty == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        FacultyDTO facultyDTO = facultyService.convertToDto(faculty);
+        return ResponseEntity.ok(facultyDTO.getStudents());
     }
 
     @GetMapping("/longest-faculty-name")

@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.hogwarts.school.DTO.FacultyDTO;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
@@ -52,11 +53,12 @@ public class StudentController {
 
     @GetMapping("{id}")
     public ResponseEntity<Student> getStudentInfo(@PathVariable Long id) {
-        Student student = studentService.findStudent(id);
-        if (student == null) {
+        try {
+            Student student = studentService.findStudent(id);
+            return ResponseEntity.ok(student);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(student);
     }
 
     @PostMapping
@@ -84,13 +86,22 @@ public class StudentController {
     }
 
     @GetMapping("/age")
-    public Collection<Student> getStudentsByAgeBetween(@RequestBody int minAge, @RequestBody int maxAge) {
+    public Collection<Student> getStudentsByAgeBetween(@RequestParam int minAge, @RequestParam int maxAge) {
         return studentService.findByAgeBetween(minAge, maxAge);
     }
 
     @GetMapping("/{id}/faculty")
-    public Faculty getStudentFaculty(@PathVariable long id) {
-        return studentService.findStudent(id).getFaculty();
+    public ResponseEntity<FacultyDTO> getStudentFaculty(@PathVariable long id) {
+        Student student = studentService.findStudent(id);
+        Faculty faculty = student.getFaculty();
+
+        if (faculty == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        FacultyDTO dto = new FacultyDTO(faculty.getId(), faculty.getName(), faculty.getColor());
+
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping(value = "/{id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
