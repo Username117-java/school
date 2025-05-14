@@ -15,6 +15,7 @@ import ru.hogwarts.school.DTO.FacultyDTO;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.AvatarRepository;
+import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -39,13 +40,16 @@ public class StudentControllerTests {
     @Autowired
     private AvatarRepository avatarRepository;
 
+    @Autowired
+    private FacultyRepository facultyRepository;
+
     @BeforeEach
     void clean() {
         avatarRepository.deleteAll();
         studentRepository.deleteAll();
     }
 
-    private String getUrl(){
+    private String getUrl() {
         return "http://localhost:" + port + "/student";
     }
 
@@ -67,13 +71,10 @@ public class StudentControllerTests {
     @Test
     void getStudentInfoByIdTest() throws Exception {
         Student student = new Student(0L, "Портер", 21);
-        Student created = restTemplate.postForObject(
-                getUrl(),
-                student,
-                Student.class);
+        student = studentRepository.save(student);
 
         ResponseEntity<Student> response = restTemplate.getForEntity(
-                getUrl() + "/" + created.getId(),
+                getUrl() + "/" + student.getId(),
                 Student.class);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -93,16 +94,13 @@ public class StudentControllerTests {
     @Test
     void updateStudentTest() throws Exception {
         Student student = new Student(0L, "Портер", 21);
-        Student created = restTemplate.postForObject(
-                getUrl(),
-                student,
-                Student.class);
+        student = studentRepository.save(student);
 
-        created.setName("New Портер");
-        restTemplate.put(getUrl(), created);
+        Student updatedStudent = new Student(student.getId(), "New Портер", 21);
+        restTemplate.put(getUrl(), updatedStudent);
 
         ResponseEntity<Student> response = restTemplate.getForEntity(
-                getUrl() + "/" + created.getId(),
+                getUrl() + "/" + student.getId(),
                 Student.class);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -113,15 +111,12 @@ public class StudentControllerTests {
     @Test
     void deleteStudentTest() throws Exception {
         Student student = new Student(0L, "Портер", 21);
-        Student created = restTemplate.postForObject(
-                getUrl(),
-                student,
-                Student.class);
+        student = studentRepository.save(student);
 
-        restTemplate.delete(getUrl() + "/" + created.getId());
+        restTemplate.delete(getUrl() + "/" + student.getId());
 
         ResponseEntity<Student> response = restTemplate.getForEntity(
-                getUrl() + "/" + created.getId(),
+                getUrl() + "/" + student.getId(),
                 Student.class);
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -129,9 +124,9 @@ public class StudentControllerTests {
 
     @Test
     void getStudentsByAgeBetweenTest() throws Exception {
-        restTemplate.postForObject(getUrl(), new Student(0L, "Портер", 21), Student.class);
-        restTemplate.postForObject(getUrl(), new Student(0L, "Вислый", 25), Student.class);
-        restTemplate.postForObject(getUrl(), new Student(0L, "Грыжер", 27), Student.class);
+        studentRepository.save(new Student(0L, "Портер", 21));
+        studentRepository.save(new Student(0L, "Вислый", 25));
+        studentRepository.save(new Student(0L, "Грыжер", 27));
 
         ResponseEntity<Collection> response = restTemplate.getForEntity(
                 getUrl() + "/age?minAge=20&maxAge=25",
@@ -143,9 +138,9 @@ public class StudentControllerTests {
 
     @Test
     void getAllStudentsTest() throws Exception {
-        restTemplate.postForObject(getUrl(), new Student(0L, "Портер", 21), Student.class);
-        restTemplate.postForObject(getUrl(), new Student(0L, "Вислый", 25), Student.class);
-        restTemplate.postForObject(getUrl(), new Student(0L, "Грыжер", 27), Student.class);
+        studentRepository.save(new Student(0L, "Портер", 21));
+        studentRepository.save(new Student(0L, "Вислый", 25));
+        studentRepository.save(new Student(0L, "Грыжер", 27));
 
         ResponseEntity<Collection> response = restTemplate.getForEntity(
                 getUrl() + "/age?minAge=20&maxAge=25",
@@ -158,18 +153,15 @@ public class StudentControllerTests {
     @Test
     void GetStudentFacultyTest() {
         Faculty faculty = new Faculty(0L, "Лизерин", "Желтый");
-        Faculty savedFaculty = restTemplate.postForObject(
-                "http://localhost:" + port + "/faculty",
-                faculty,
-                Faculty.class);
+        faculty = facultyRepository.save(faculty);
 
         Student student = new Student(0L, "Портер", 21);
-        student.setFaculty(savedFaculty);
+        student.setFaculty(faculty);
 
-        Student created = restTemplate.postForObject(getUrl(), student, Student.class);
+        student = studentRepository.save(student);
 
         ResponseEntity<FacultyDTO> response = restTemplate.getForEntity(
-                getUrl() + "/" + created.getId() + "/faculty",
+                getUrl() + "/" + student.getId() + "/faculty",
                 FacultyDTO.class
         );
 
@@ -179,12 +171,6 @@ public class StudentControllerTests {
         Assertions.assertEquals("Желтый", response.getBody().getColor());
 
     }
-
-
-
-
-
-
 
 
 }

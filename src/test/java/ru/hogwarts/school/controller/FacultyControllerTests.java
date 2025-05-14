@@ -19,6 +19,7 @@ import ru.hogwarts.school.repository.StudentRepository;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -59,7 +60,7 @@ public class FacultyControllerTests {
 
     @Test
     void getFacultyInfoByIdTest() {
-        Faculty faculty = restTemplate.postForObject(getUrl(), new Faculty(0L, "Лизерин", "Жёлтый"), Faculty.class);
+        Faculty faculty = facultyRepository.save(new Faculty(0L, "Лизерин", "Жёлтый"));
 
         ResponseEntity<Faculty> response = restTemplate.getForEntity(getUrl() + "/" + faculty.getId(), Faculty.class);
 
@@ -76,19 +77,20 @@ public class FacultyControllerTests {
 
     @Test
     void updateFacultyTest() {
-        Faculty faculty = restTemplate.postForObject(getUrl(), new Faculty(0L, "Лизерин", "Жёлтый"), Faculty.class);
-        faculty.setName("New Лизерин");
+        Faculty faculty = new Faculty(0L, "Лизерин", "Жёлтый");
+        faculty = facultyRepository.save(faculty);
 
-        HttpEntity<Faculty> request = new HttpEntity<>(faculty);
-        ResponseEntity<Faculty> response = restTemplate.exchange(getUrl(), HttpMethod.PUT, request, Faculty.class);
+        Faculty updatedFaculty = new Faculty(faculty.getId(), "New Лизерин", "Жёлтый");
 
+        ResponseEntity<Faculty> response = restTemplate.postForEntity(getUrl(), updatedFaculty, Faculty.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals("New Лизерин", response.getBody().getName());
     }
 
     @Test
     void deleteFacultyTest() {
-        Faculty faculty = restTemplate.postForObject(getUrl(), new Faculty(0L, "Лизерин", "Жёлтый"), Faculty.class);
+        Faculty faculty = new Faculty(0L, "Лизерин", "Жёлтый");
+        faculty = facultyRepository.save(faculty);
 
         restTemplate.delete(getUrl() + "/" + faculty.getId());
 
@@ -98,33 +100,32 @@ public class FacultyControllerTests {
 
     @Test
     void getFacultiesByColorOrNameTest() {
-        restTemplate.postForObject(getUrl(), new Faculty(0L, "Лизерин", "Жёлтый"), Faculty.class);
+        Faculty faculty = new Faculty(0L, "Лизерин", "Жёлтый");
+        Faculty faculty1 = new Faculty(0L, "Гиффиндуй", "Жёлтый");
+        Faculty faculty2 = new Faculty(0L, "Пуффиндор", "Айвори");
+
+        facultyRepository.saveAll(Arrays.asList(faculty, faculty1, faculty2));
 
         ResponseEntity<Collection> response = restTemplate.getForEntity(getUrl() + "/colororname/жёлтый", Collection.class);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertNotNull(response.getBody());
+        Assertions.assertEquals(2, response.getBody().size());
     }
 
     @Test
     void getFacultyStudentsTest() {
-        Faculty faculty = restTemplate.postForObject(getUrl(), new Faculty(0L, "Лизерин", "Жёлтый"), Faculty.class);
+        Faculty faculty = new Faculty(0L, "Лизерин", "Жёлтый");
+        facultyRepository.save(faculty);
+
         Student student = new Student(0L, "Портер", 21);
         Student student2 = new Student(0L, "Вислый", 21);
 
         student.setFaculty(faculty);
         student2.setFaculty(faculty);
 
-        Student createdStudent1 = restTemplate.postForObject(
-                "/student",
-                student,
-                Student.class
-        );
-        Student createdStudent2 = restTemplate.postForObject(
-                "/student",
-                student2,
-                Student.class
-        );
+        studentRepository.save(student);
+        studentRepository.save(student2);
 
 
         ResponseEntity<StudentDTO[]> response = restTemplate.getForEntity(
@@ -142,9 +143,9 @@ public class FacultyControllerTests {
 
     @Test
     void getLongestFacultyNameTest() {
-        restTemplate.postForObject(getUrl(), new Faculty(0L, "А", "Жёлтый"), Faculty.class);
-        restTemplate.postForObject(getUrl(), new Faculty(0L, "Лизерин", "Жёлтый"), Faculty.class);
-        restTemplate.postForObject(getUrl(), new Faculty(0L, "ОченьДлинноеНазваниеФакультета", "Жёлтый"), Faculty.class);
+        facultyRepository.save(new Faculty(0L, "А", "Жёлтый"));
+        facultyRepository.save(new Faculty(0L, "Лизерин", "Жёлтый"));
+        facultyRepository.save(new Faculty(0L, "ОченьДлинноеНазваниеФакультета", "Жёлтый"));
 
         ResponseEntity<String> response = restTemplate.getForEntity(getUrl() + "/longest-faculty-name", String.class);
 
